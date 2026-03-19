@@ -141,4 +141,9 @@ emissions_tab
 
 ```
 
+## Conclusions and caveats
+
+
+This analysis is intended to give a ballpark estimate of the range of the environmental impacts of CoPilot use. The scenarios are intended to give estimates in plausible ranges. CoPilot use might increase beyond the ranges used here in estimation. AI operation may also become more efficient.
+
 
