@@ -1,0 +1,144 @@
+---
+title: "CoPilot Environmental Impact"
+output: word_document
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, 
+                      warning = FALSE, 
+                      message = FALSE)
+```
+
+
+```{r}
+library(tidyverse)
+library(flextable)
+library(here)
+
+source(here("analysis", "copilot_estimates.R"))
+normalisation_factors <- read_csv(here("data", "normalisation_factors.csv"))
+
+
+scenario_results_l <- scenario_results %>% 
+  pivot_longer(cols = -scenario, 
+               names_to = "consumption", 
+               values_to = "consumption_value") %>% 
+  left_join(normalisation_factors, by = "consumption") %>% 
+  mutate(normalised = consumption_value/value)
+
+
+scenario_description <-  scenarios |>
+     rowwise() |>
+     mutate(
+         proportions = list(compute_proportion_table(pick(everything())))
+     ) %>%  select(scenario, number_prompts, proportions) %>% 
+     unnest(proportions) %>% 
+   left_join(tibble(model = c("GPT-5 (high)", "GPT-5 (medium)", "GPT-5 (low)"),
+                    complexity = c("high", "intermediate", "low")), 
+             by = "model"
+             ) %>% 
+   select(-model) %>% 
+   mutate(final_prop = round(final_prop * 100, 1)) %>% 
+   pivot_wider(names_from = c(length, complexity), 
+               values_from = final_prop) %>% 
+   t() %>% 
+   as_tibble(rownames = "prompt")
+ 
+names(scenario_description) <- c("Assumption", scenario_description[1,2:5])
+ 
+scenario_description <- scenario_description[2:nrow(scenario_description), ]
+   
+                    
+                    
+```
+## Introduction
+
+CoPilot currently uses the GPT-5 large language model. Estimates for GPT-5 energy use, emissions and water consumption are reported [here](https://app.powerbi.com/view?r=eyJrIjoiZjVmOTI0MmMtY2U2Mi00ZTE2LTk2MGYtY2ZjNDMzODZkMjlmIiwidCI6IjQyNmQyYThkLTljY2QtNDI1NS04OTNkLTA2ODZhMzJjMTY4ZCIsImMiOjF9). 
+
+The environmental impact varies for the length of prompt and the complexity of the prompt. 
+
+The results below estimate environmental impacts for Scottish Governments annual use of CoPilot. They estimates are derived for for four scenarios with differing assumptions on the number of prompts and the relative proportions of length and complexity of prompts.
+
+* Scenario 1: Assumes 365 days at a prompt rate based on actual prompt rate between 1 September 2025 and 27 February 2026. Assume 80%/20%/0% split of short, medium and long prompts and majority of prompts of low complexity. The length split is based on the conservative scenario in [Jegham et al 2025](https://arxiv.org/pdf/2505.09598). This is the most conservative scenario.
+* Scenario 2: Length and complexity proportions as in Scenario 1, but number of prompts increases by 50%. Increase in prompt number would be expected following SG Policy blocking the use of other LLMs implemented on 2 March 2026
+* Scenario 3. Prompt number as in scenario 1, but assumes 25%/50%/25% split of short, medium and long prompts and allows for some medium and long prompts to be of high complexity. The inclusion of long prompts factors in that prompt length increases as conversation length increases making it likely that a proportion of prompts will be long.
+* Scenario 4: Prompt number as in scenario 2, and length and complexity split as in scenario 3.
+
+The assumptions are summarised in the table below, where the Long_high shows the final percentages of long and high complexity prompts in a given scenario, and similarly for subsequent rows.
+
+\newpage
+
+```{r}
+
+#tab <- flextable(scenario_description)
+
+tab <- width(qflextable(scenario_description), j = 1, width = 3)
+
+tab
+
+```
+
+## Results
+
+### Energy use
+
+Energy use in each scenario in MWh and relative to the energy consumption of a 2-3 bedroom average UK home ^[14.2 MWh https://www.ofgem.gov.uk/average-gas-and-electricity-use-explained].
+
+```{r}
+energy_use <- scenario_results_l %>% 
+  filter(consumption == "energy_mwh") %>% 
+  rename(MWh = consumption_value, 
+         Homes = normalised, 
+         Scenario = scenario) %>% 
+  select(Scenario, MWh, Homes) %>% 
+  mutate_if(is.numeric, round, 1)
+
+energy_use_tab <- width(qflextable(energy_use), j = 1, width = 2)
+
+energy_use_tab
+
+```
+
+\newpage
+
+### Emissions
+
+Emissions in tons of CO2e and relative to average UK annual per capita emissions estimates ^[7.2 tCO2e Per capita emissions based on 39.6Mt CO2e 2023 Scotland emissions https://www.gov.scot/publications/scottish-greenhouse-gas-statistics-2023/ and 5,490,100 population estimates https://www.nrscotland.gov.uk/latest-news/scotland-s-population-grows/]. Note that per capita emissions here are computed from estimates including non-domestic emissions.
+
+```{r}
+emissions <- scenario_results_l %>% 
+  filter(consumption == "carbon_tons") %>% 
+  rename(`tonnes CO2e` = consumption_value, 
+         `Normalised per capita` = normalised, 
+         Scenario = scenario) %>% 
+  select(Scenario, `tonnes CO2e`, `Normalised per capita`) %>% 
+  mutate_if(is.numeric, round, 1)
+
+emissions_tab <- width(qflextable(emissions), j = 1, width = 2)
+
+emissions_tab
+
+```
+
+### Water use
+
+Water use in kiloliters and relative to typical per capita annual water consumption in Scotland ^[180 l/day and 65.7 kl/year https://consumer.scot/media/wmbbixzt/consumer-scotland-water-efficiency-reportdocx.pdf].
+
+
+```{r}
+water <- scenario_results_l %>% 
+  filter(consumption == "water_kl") %>% 
+  rename(kiloliters = consumption_value, 
+         `Normalised per capita` = normalised, 
+         Scenario = scenario) %>% 
+  select(Scenario, kiloliters, `Normalised per capita`) %>% 
+  mutate_if(is.numeric, round, 1)
+
+emissions_tab <- width(qflextable(water), j = 1, width = 2)
+
+emissions_tab
+
+```
+
+
