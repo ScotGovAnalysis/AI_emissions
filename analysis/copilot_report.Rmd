@@ -1,5 +1,5 @@
 ---
-title: "CoPilot Environmental Impact"
+title: "Scottish Government Copilot Environmental Impact"
 output: word_document
 date: "`r Sys.Date()`"
 ---
@@ -45,7 +45,7 @@ scenario_description <-  scenarios |>
    t() %>% 
    as_tibble(rownames = "prompt")
  
-names(scenario_description) <- c("Assumption", scenario_description[1,2:5])
+names(scenario_description) <- c("Assumption", scenario_description[1,2:dim(scenario_description)[2]])
  
 scenario_description <- scenario_description[2:nrow(scenario_description), ]
    
@@ -54,16 +54,17 @@ scenario_description <- scenario_description[2:nrow(scenario_description), ]
 ```
 ## Introduction
 
-CoPilot currently uses the GPT-5 large language model. Estimates for GPT-5 energy use, emissions and water consumption are reported [here](https://app.powerbi.com/view?r=eyJrIjoiZjVmOTI0MmMtY2U2Mi00ZTE2LTk2MGYtY2ZjNDMzODZkMjlmIiwidCI6IjQyNmQyYThkLTljY2QtNDI1NS04OTNkLTA2ODZhMzJjMTY4ZCIsImMiOjF9). 
+Copilot currently uses the GPT-5 large language model. Estimates for GPT-5 energy use, emissions and water consumption are reported [here](https://app.powerbi.com/view?r=eyJrIjoiZjVmOTI0MmMtY2U2Mi00ZTE2LTk2MGYtY2ZjNDMzODZkMjlmIiwidCI6IjQyNmQyYThkLTljY2QtNDI1NS04OTNkLTA2ODZhMzJjMTY4ZCIsImMiOjF9). 
 
 The environmental impact varies for the length of prompt and the complexity of the prompt. 
 
-The results below estimate environmental impacts for Scottish Governments annual use of CoPilot. They estimates are derived for for four scenarios with differing assumptions on the number of prompts and the relative proportions of length and complexity of prompts.
+The results below estimate environmental impacts for the Scottish Government's annual use of Copilot. They estimates are derived for five scenarios with differing assumptions on the number of prompts and the relative proportions of length and complexity of prompts.
 
 * Scenario 1: Assumes 365 days at a prompt rate based on actual prompt rate between 1 September 2025 and 27 February 2026. Assume 80%/20%/0% split of short, medium and long prompts and majority of prompts of low complexity. The length split is based on the conservative scenario in [Jegham et al 2025](https://arxiv.org/pdf/2505.09598). This is the most conservative scenario.
 * Scenario 2: Length and complexity proportions as in Scenario 1, but number of prompts increases by 50%. Increase in prompt number would be expected following SG Policy blocking the use of other LLMs implemented on 2 March 2026
 * Scenario 3. Prompt number as in scenario 1, but assumes 25%/50%/25% split of short, medium and long prompts and allows for some medium and long prompts to be of high complexity. The inclusion of long prompts factors in that prompt length increases as conversation length increases making it likely that a proportion of prompts will be long.
 * Scenario 4: Prompt number as in scenario 2, and length and complexity split as in scenario 3.
+* Scenario 5: Length and complexity as in Scenario 2 and 4, but assumes as doubling of prompt number as compared to scenario 1. This scenario aims to capture a more widespread use of AI in Scottish Government in future.
 
 The assumptions are summarised in the table below, where the Long_high shows the final percentages of long and high complexity prompts in a given scenario, and similarly for subsequent rows.
 
@@ -73,7 +74,7 @@ The assumptions are summarised in the table below, where the Long_high shows the
 
 #tab <- flextable(scenario_description)
 
-tab <- width(qflextable(scenario_description), j = 1, width = 3)
+tab <- width(qflextable(scenario_description), j = 1, width = 2)
 
 tab
 
@@ -123,7 +124,7 @@ emissions_tab
 
 ### Water use
 
-Water use in kiloliters and relative to typical per capita annual water consumption in Scotland ^[180 l/day and 65.7 kl/year https://consumer.scot/media/wmbbixzt/consumer-scotland-water-efficiency-reportdocx.pdf].
+Water use in kiloliters and relative to typical per capita annual water consumption in Scotland ^[185 l/day and 67.5 kl/year https://www.yourwateryourlife.co.uk/tips-and-help/how-much-water-do-i-use-each-day/].
 
 
 ```{r}
@@ -141,9 +142,16 @@ emissions_tab
 
 ```
 
+\newpage
 ## Conclusions and caveats
 
 
-This analysis is intended to give a ballpark estimate of the range of the environmental impacts of CoPilot use. The scenarios are intended to give estimates in plausible ranges. CoPilot use might increase beyond the ranges used here in estimation. AI operation may also become more efficient.
+This analysis is intended to give a ballpark estimate of the range of the environmental impacts of Copilot use. The scenarios are intended to give estimates in plausible ranges. Copilot use might increase beyond the ranges used here. AI operation may also become more/less efficient.
+
+The analysis is an estimate of the energy, carbon and water associated with Copilot queries, and does not provide any information relating to the training of the AI.
+
+The complexity of the prompt dictates the underlying model that is used. In this analysis, prompt complexity is used as a proxy of which model is used in responding to the prompt.
+
+The quantification of water does not factor the environmental impacts associated with location-dependent sourcing of water, e.g. limitations on water availability around data-centres.
 
 
