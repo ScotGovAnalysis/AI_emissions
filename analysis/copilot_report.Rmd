@@ -102,7 +102,7 @@ energy_use <- scenario_results_l %>%
          `% SG` = SG) %>% 
   select(Scenario, MWh, Homes, `% SG`) %>% 
   mutate_at(c("MWh", "Homes"), round, 1) %>% 
-  mutate_at("% SG", round, 4)
+  mutate_at("% SG", round, 2)
 
 energy_use_tab <- width(qflextable(energy_use), j = 1, width = 2)
 
@@ -114,7 +114,7 @@ energy_use_tab
 
 ### Emissions
 
-Emissions in tons of CO2e and relative to average Scottish annual per capita emissions estimates ^[7.2 tCO2e Per capita emissions based on 39.6Mt CO2e 2023 Scotland emissions https://www.gov.scot/publications/scottish-greenhouse-gas-statistics-2023/ and 5,490,100 population estimates https://www.nrscotland.gov.uk/latest-news/scotland-s-population-grows/] and as a percentage of Scottish Government annual Scope 1 and Scope 2 emissions in 2024/25 ^[https://sustainablescotlandnetwork.org/wp-content/uploads/2026/03/The-Scottish-Government-PBCCD-Report-2025.xlsx]. Note that per capita emissions here are computed from estimates including non-domestic emissions.
+Emissions in tons of CO2e and relative to average Scottish annual per capita emissions estimates ^[7.2 tCO2e Per capita emissions based on 39.6Mt CO2e 2023 Scotland emissions https://www.gov.scot/publications/scottish-greenhouse-gas-statistics-2023/ and 5,490,100 population estimates https://www.nrscotland.gov.uk/latest-news/scotland-s-population-grows/] and as a percentage of Scottish Government annual Scope 1 and Scope 2 emissions in 2024/25$^2$. Note that per capita emissions here are computed from estimates including non-domestic emissions.
 
 ```{r}
 emissions <- scenario_results_l %>% 
@@ -142,7 +142,7 @@ emissions_tab
 
 ### Water use
 
-Water use in kiloliters and relative to typical per capita annual water consumption in Scotland ^[185 l/day and 67.5 kl/year https://www.yourwateryourlife.co.uk/tips-and-help/how-much-water-do-i-use-each-day/], and as a percentage of Scottish Government annual water use in 2024/25 ^[https://sustainablescotlandnetwork.org/wp-content/uploads/2026/03/The-Scottish-Government-PBCCD-Report-2025.xlsx].
+Water use in kiloliters and relative to typical per capita annual water consumption in Scotland ^[185 l/day and 67.5 kl/year https://www.yourwateryourlife.co.uk/tips-and-help/how-much-water-do-i-use-each-day/], and as a percentage of Scottish Government annual water use in 2024/25 $^2$.
 
 
 ```{r}
@@ -166,6 +166,7 @@ water_tab
 
 ```
 
+\newpage
 
 ## Conclusions and caveats
 
