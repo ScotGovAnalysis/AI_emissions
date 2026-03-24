@@ -20,7 +20,7 @@ source(here("analysis", "copilot_estimates.R"))
 normalisation_factors <- read_csv("\\\\s0196a\\ADM-Energy and Climate Change-Climate Change Modelling\\modelling\\ai_emissions\\data\\normalisation_factors.csv")
 # Comment out above and uncomment the line below to use a local copy of the data  
 # normalisation_factors <- read_csv(here("data",          
-                                       "normalisation_factors.csv"))
+#                                       "normalisation_factors.csv"))
 
 
 scenario_results_l <- scenario_results %>% 
@@ -87,16 +87,22 @@ tab
 
 ### Energy use
 
-Energy use in each scenario in MWh and relative to the energy consumption of a 2-3 bedroom average UK home ^[14.2 MWh https://www.ofgem.gov.uk/average-gas-and-electricity-use-explained].
+Energy use in each scenario in MWh and relative to the energy consumption of a 2-3 bedroom average UK home ^[14.2 MWh https://www.ofgem.gov.uk/average-gas-and-electricity-use-explained], and as a percentage of Scottish Government annual electricity and gas use in 2024/25 ^[https://sustainablescotlandnetwork.org/wp-content/uploads/2026/03/The-Scottish-Government-PBCCD-Report-2025.xlsx].
 
 ```{r}
 energy_use <- scenario_results_l %>% 
-  filter(consumption == "energy_mwh") %>% 
+  filter(consumption == "energy_mwh") %>%
+  select(scenario, consumption_value, measure, normalised) %>% 
+  pivot_wider(names_from = measure, 
+              values_from = normalised) %>% 
+  mutate(SG = SG*100) %>% 
   rename(MWh = consumption_value, 
-         Homes = normalised, 
-         Scenario = scenario) %>% 
-  select(Scenario, MWh, Homes) %>% 
-  mutate_if(is.numeric, round, 1)
+         Homes = household, 
+         Scenario = scenario, 
+         `% SG` = SG) %>% 
+  select(Scenario, MWh, Homes, `% SG`) %>% 
+  mutate_at(c("MWh", "Homes"), round, 1) %>% 
+  mutate_at("% SG", round, 4)
 
 energy_use_tab <- width(qflextable(energy_use), j = 1, width = 2)
 
@@ -108,16 +114,25 @@ energy_use_tab
 
 ### Emissions
 
-Emissions in tons of CO2e and relative to average UK annual per capita emissions estimates ^[7.2 tCO2e Per capita emissions based on 39.6Mt CO2e 2023 Scotland emissions https://www.gov.scot/publications/scottish-greenhouse-gas-statistics-2023/ and 5,490,100 population estimates https://www.nrscotland.gov.uk/latest-news/scotland-s-population-grows/]. Note that per capita emissions here are computed from estimates including non-domestic emissions.
+Emissions in tons of CO2e and relative to average Scottish annual per capita emissions estimates ^[7.2 tCO2e Per capita emissions based on 39.6Mt CO2e 2023 Scotland emissions https://www.gov.scot/publications/scottish-greenhouse-gas-statistics-2023/ and 5,490,100 population estimates https://www.nrscotland.gov.uk/latest-news/scotland-s-population-grows/] and as a percentage of Scottish Government annual Scope 1 and Scope 2 emissions in 2024/25 ^[https://sustainablescotlandnetwork.org/wp-content/uploads/2026/03/The-Scottish-Government-PBCCD-Report-2025.xlsx]. Note that per capita emissions here are computed from estimates including non-domestic emissions.
 
 ```{r}
 emissions <- scenario_results_l %>% 
   filter(consumption == "carbon_tons") %>% 
+  
+  select(scenario, consumption_value, measure, normalised) %>% 
+  pivot_wider(names_from = measure, 
+              values_from = normalised) %>% 
+  mutate(SG = SG*100) %>% 
   rename(`tonnes CO2e` = consumption_value, 
-         `Normalised per capita` = normalised, 
-         Scenario = scenario) %>% 
-  select(Scenario, `tonnes CO2e`, `Normalised per capita`) %>% 
-  mutate_if(is.numeric, round, 1)
+         `Normalised per capita` = person, 
+         Scenario = scenario,
+         `% SG` = SG) %>% 
+  select(Scenario, `tonnes CO2e`, `Normalised per capita`, `% SG`) %>% 
+  mutate_at(c("tonnes CO2e", "Normalised per capita"), round, 1) %>% 
+  mutate_at("% SG", round, 2)
+  
+
 
 emissions_tab <- width(qflextable(emissions), j = 1, width = 2)
 
@@ -127,25 +142,31 @@ emissions_tab
 
 ### Water use
 
-Water use in kiloliters and relative to typical per capita annual water consumption in Scotland ^[185 l/day and 67.5 kl/year https://www.yourwateryourlife.co.uk/tips-and-help/how-much-water-do-i-use-each-day/].
+Water use in kiloliters and relative to typical per capita annual water consumption in Scotland ^[185 l/day and 67.5 kl/year https://www.yourwateryourlife.co.uk/tips-and-help/how-much-water-do-i-use-each-day/], and as a percentage of Scottish Government annual water use in 2024/25 ^[https://sustainablescotlandnetwork.org/wp-content/uploads/2026/03/The-Scottish-Government-PBCCD-Report-2025.xlsx].
 
 
 ```{r}
 water <- scenario_results_l %>% 
   filter(consumption == "water_kl") %>% 
+  select(scenario, consumption_value, measure, normalised) %>% 
+  pivot_wider(names_from = measure, 
+              values_from = normalised) %>% 
+  mutate(SG = SG*100) %>% 
   rename(kiloliters = consumption_value, 
-         `Normalised per capita` = normalised, 
-         Scenario = scenario) %>% 
-  select(Scenario, kiloliters, `Normalised per capita`) %>% 
-  mutate_if(is.numeric, round, 1)
+         `Normalised per capita` = person, 
+         Scenario = scenario,
+         `% SG` = SG) %>% 
+  select(Scenario, kiloliters, `Normalised per capita`, `% SG`) %>% 
+  mutate_at(c("kiloliters", "Normalised per capita"), round, 1) %>% 
+  mutate_at("% SG", round, 2)
 
-emissions_tab <- width(qflextable(water), j = 1, width = 2)
+water_tab <- width(qflextable(water), j = 1, width = 2)
 
-emissions_tab
+water_tab
 
 ```
 
-\newpage
+
 ## Conclusions and caveats
 
 
