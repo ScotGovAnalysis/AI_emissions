@@ -16,7 +16,10 @@ source(here("R", "functions.R"))
 # Load scenario definitions
 # -------------------------------------------------------------------------
 # scenarios <- read_csv("../data/scenarios.csv", show_col_types = FALSE)
-scenarios <- read_csv(here("data", "scenarios.csv"), show_col_types = FALSE)
+scenarios <- read_csv("\\\\s0196a\\ADM-Energy and Climate Change-Climate Change Modelling\\modelling\\ai_emissions\\data\\scenarios.csv", , show_col_types = FALSE)
+# Comment out above and uncomment the line below to use a local copy of the data  
+#scenarios <- read_csv(here("data", "scenarios.csv"), 
+#                                         show_col_types = FALSE)
 
 
 

@@ -17,7 +17,10 @@ library(flextable)
 library(here)
 
 source(here("analysis", "copilot_estimates.R"))
-normalisation_factors <- read_csv(here("data", "normalisation_factors.csv"))
+normalisation_factors <- read_csv("\\\\s0196a\\ADM-Energy and Climate Change-Climate Change Modelling\\modelling\\ai_emissions\\data\\normalisation_factors.csv")
+# Comment out above and uncomment the line below to use a local copy of the data  
+# normalisation_factors <- read_csv(here("data",          
+                                       "normalisation_factors.csv"))
 
 
 scenario_results_l <- scenario_results %>% 
