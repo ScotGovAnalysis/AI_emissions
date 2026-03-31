@@ -67,7 +67,7 @@ The results below estimate environmental impacts for the Scottish Government's a
 * Scenario 2: Length and complexity proportions as in Scenario 1, but number of prompts increases by 50%. Increase in prompt number would be expected following SG Policy blocking the use of other LLMs implemented on 2 March 2026
 * Scenario 3. Prompt number as in scenario 1, but assumes 25%/50%/25% split of short, medium and long prompts and allows for some medium and long prompts to be of high complexity. The inclusion of long prompts factors in that prompt length increases as conversation length increases making it likely that a proportion of prompts will be long.
 * Scenario 4: Prompt number as in scenario 2, and length and complexity split as in scenario 3.
-* Scenario 5: Length and complexity as in Scenario 2 and 4, but assumes a doubling of prompt number as compared to scenario 1. This scenario aims to capture a more widespread use of AI in Scottish Government in future.
+* Scenario 5: Length and complexity as in Scenario 3 and 4, but assumes a doubling of prompt number as compared to scenario 1. This scenario aims to capture a more widespread use of AI in Scottish Government in future.
 
 The assumptions are summarised in the table below, where the Long_high shows the final percentages of long and high complexity prompts in a given scenario, and similarly for subsequent rows.
 
