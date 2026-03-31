@@ -52,38 +52,55 @@ names(scenario_description) <- c("Assumption", scenario_description[1,2:dim(scen
  
 scenario_description <- scenario_description[2:nrow(scenario_description), ]
    
-                    
+sg_ranges <- scenario_results_l %>% 
+  filter(measure == "SG") %>% 
+  group_by(consumption) %>% 
+  summarise(min = min(normalised) *100, 
+            max = max(normalised) * 100)
                     
 ```
+## Key messages
+This analysis estimates environmental impact of Scottish Government Copilot use. 
+
+In the scenarios used:
+
+* Annual emissions range between `r sg_ranges %>%  filter(consumption == "carbon_tons") %>%  pull(min) %>% round(1)` -- `r sg_ranges %>%  filter(consumption == "carbon_tons") %>%  pull(max) %>% round(1)` % of 2024/25 direct emissions from the Scottish Government estate.
+* Annual energy use ranges between `r sg_ranges %>%  filter(consumption == "energy_mwh") %>%  pull(min) %>% round(1)` -- `r sg_ranges %>%  filter(consumption == "energy_mwh") %>%  pull(max) %>% round(1)` % of 2024/25 gas plus electricity use across the Scottish Government estate.
+* Annual water consumption ranges between `r sg_ranges %>%  filter(consumption == "water_kl") %>%  pull(min) %>% round(1)` -- `r sg_ranges %>%  filter(consumption == "water_kl") %>%  pull(max) %>% round(1)` % of 2024/25 water use across the Scottish Government estate.
+
+
+
 ## Introduction
 
 Copilot currently uses the GPT-5 large language model. Estimates for GPT-5 energy use, emissions and water consumption are reported [here](https://app.powerbi.com/view?r=eyJrIjoiZjVmOTI0MmMtY2U2Mi00ZTE2LTk2MGYtY2ZjNDMzODZkMjlmIiwidCI6IjQyNmQyYThkLTljY2QtNDI1NS04OTNkLTA2ODZhMzJjMTY4ZCIsImMiOjF9). 
 
 The environmental impact varies for the length of prompt and the complexity of the prompt. 
 
-The results below estimate environmental impacts for the Scottish Government's annual use of Copilot. They estimates are derived for five scenarios with differing assumptions on the number of prompts and the relative proportions of length and complexity of prompts.
+The results below estimate environmental impacts for the Scottish Government's annual use of Copilot. They estimates are derived for three scenarios with differing assumptions on the number of prompts and the relative proportions of length and complexity of prompts.
 
-* Scenario 1: Assumes 365 days at a prompt rate based on actual prompt rate between 1 September 2025 and 27 February 2026. Assume 80%/20%/0% split of short, medium and long prompts and majority of prompts of low complexity. The length split is based on the conservative scenario in [Jegham et al 2025](https://arxiv.org/pdf/2505.09598). This is the most conservative scenario.
-* Scenario 2. Prompt number as in scenario 1, but assumes 25%/50%/25% split of short, medium and long prompts and allows for some medium and long prompts to be of high complexity. The inclusion of long prompts factors in that prompt length increases as conversation length increases, making it likely that a proportion of prompts will be long.
-* Scenario 3: Length and complexity as in Scenario 2, but assumes a doubling of prompt number as compared to scenario 1. This scenario aims to capture a more widespread use of AI in Scottish Government in future.
+* Scenario 1: Assumes an annual prompt rate based on actual prompt rate between 1 September 2025 and 27 February 2026. Assume 80%/20%/0% split of short, medium and long prompts and majority of prompts of low complexity.^[The length split is based on the scenario in [Jegham et al 2025](https://arxiv.org/pdf/2505.09598).] This is the most conservative scenario.
+* Scenario 2. Prompt number as in Scenario 1, but assumes 25%/50%/25% split of short, medium and long prompts and allows for some medium and long prompts to be of high complexity.^[The inclusion of long prompts factors in that prompt length increases as conversation length increases, making it likely that a proportion of prompts will be long.]
+* Scenario 3: Length and complexity as in Scenario 2, but assumes a doubling of prompt number as compared to Scenario 1. This scenario aims to capture a more widespread use of AI in Scottish Government in future.
 
-The assumptions are summarised in the table below, where the Long_high shows the final percentages of long and high complexity prompts in a given scenario, and similarly for subsequent rows.
+The assumptions are summarised in the table below, where the row "Long High" shows the final percentages of long and high complexity prompts in a given scenario, and similarly for subsequent rows.
 
-\newpage
 
 ```{r}
 
-#tab <- flextable(scenario_description)
+
 
 tab <- width(qflextable(scenario_description %>% 
                           rename("Scenario 1" = scenario_1, 
                                  "Scenario 2" = scenario_2, 
-                                 "Scenario 3" = scenario_3)), j = 1, width = 2)
+                                 "Scenario 3" = scenario_3) %>% 
+                          mutate(Assumption = str_replace(Assumption, "_", " "), 
+                                 Assumption = str_to_title(Assumption))), j = 1, width = 2)
 
 tab
 
 ```
 
+\newpage
 ## Results
 
 ### Energy use
@@ -104,8 +121,8 @@ energy_use <- scenario_results_l %>%
          Scenario = scenario, 
          `% SG` = SG) %>% 
   select(Scenario, MWh, Homes, `% SG`) %>% 
-  mutate_at(c("MWh", "Homes"), round, 1) %>% 
-  mutate_at("% SG", round, 2)
+  mutate_at(c("MWh", "Homes"), round, 0) %>% 
+  mutate_at("% SG", round, 1)
 
 energy_use_tab <- width(qflextable(energy_use), j = 1, width = 2)
 
@@ -113,11 +130,10 @@ energy_use_tab
 
 ```
 
-\newpage
 
 ### Emissions
 
-Emissions in tons of CO2e and relative to average Scottish annual per capita emissions estimates ^[7.2 tCO2e Per capita emissions based on 39.6Mt CO2e 2023 Scotland emissions https://www.gov.scot/publications/scottish-greenhouse-gas-statistics-2023/ and 5,490,100 population estimates https://www.nrscotland.gov.uk/latest-news/scotland-s-population-grows/] and as a percentage of Scottish Government annual Scope 1 and Scope 2 emissions in 2024/25$^2$. Note that per capita emissions here are computed from estimates including non-domestic emissions.
+Emissions in tons of CO2e and relative to average Scottish annual per capita emissions estimates^[7.2 tCO2e Per capita emissions based on 39.6Mt CO2e 2023 Scotland emissions https://www.gov.scot/publications/scottish-greenhouse-gas-statistics-2023/ and 5,490,100 population estimates https://www.nrscotland.gov.uk/latest-news/scotland-s-population-grows/.  Note that per capita emissions here are computed from estimates including non-domestic emissions.], and as a percentage of Scottish Government annual Scope 1 and Scope 2 emissions in 2024/25$^2$.
 
 ```{r}
 emissions <- scenario_results_l %>% 
@@ -130,12 +146,12 @@ emissions <- scenario_results_l %>%
          scenario = str_replace(scenario, "_", " "), 
          scenario = str_replace(scenario, "^s", "S")) %>% 
   rename(`tonnes CO2e` = consumption_value, 
-         `Normalised per capita` = person, 
+         `Per capita emissions` = person, 
          Scenario = scenario,
          `% SG` = SG) %>% 
-  select(Scenario, `tonnes CO2e`, `Normalised per capita`, `% SG`) %>% 
-  mutate_at(c("tonnes CO2e", "Normalised per capita"), round, 1) %>% 
-  mutate_at("% SG", round, 2)
+  select(Scenario, `tonnes CO2e`, `Per capita emissions`, `% SG`) %>% 
+  mutate_at(c("tonnes CO2e", "Per capita emissions"), round, 0) %>% 
+  mutate_at("% SG", round, 1)
   
 
 
@@ -145,6 +161,7 @@ emissions_tab
 
 ```
 
+\newpage
 ### Water use
 
 Water use in kiloliters and relative to typical per capita annual water consumption in Scotland ^[185 l/day and 67.5 kl/year https://www.yourwateryourlife.co.uk/tips-and-help/how-much-water-do-i-use-each-day/], and as a percentage of Scottish Government annual water use in 2024/25 $^2$.
@@ -160,12 +177,12 @@ water <- scenario_results_l %>%
          scenario = str_replace(scenario, "_", " "), 
          scenario = str_replace(scenario, "^s", "S")) %>% 
   rename(kiloliters = consumption_value, 
-         `Normalised per capita` = person, 
+         `Per capita water consumption` = person, 
          Scenario = scenario,
          `% SG` = SG) %>% 
-  select(Scenario, kiloliters, `Normalised per capita`, `% SG`) %>% 
-  mutate_at(c("kiloliters", "Normalised per capita"), round, 1) %>% 
-  mutate_at("% SG", round, 2)
+  select(Scenario, kiloliters, `Per capita water consumption`, `% SG`) %>% 
+  mutate_at(c("kiloliters", "Per capita water consumption"), round, 0) %>% 
+  mutate_at("% SG", round, 1)
 
 water_tab <- width(qflextable(water), j = 1, width = 2)
 
@@ -173,7 +190,7 @@ water_tab
 
 ```
 
-\newpage
+
 
 ## Conclusions and caveats
 
@@ -184,6 +201,6 @@ The analysis is an estimate of the energy, carbon and water associated with Copi
 
 The complexity of the prompt dictates the underlying model that is used. In this analysis, prompt complexity is used as a proxy of which model is used in responding to the prompt.
 
-The quantification of water does not factor the environmental impacts associated with location-dependent sourcing of water, e.g. limitations on water availability around data-centres.
+The quantification of water does not factor in the environmental impacts associated with location-dependent sourcing of water, e.g. limitations on water availability around data-centres.
 
 
