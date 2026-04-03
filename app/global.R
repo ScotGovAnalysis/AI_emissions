@@ -2,7 +2,7 @@ library(tidyverse)
 
 today_date <- Sys.Date()
 date_final <- today_date - 2
-date_start <-  date_final - 10
+date_start <-  date_final - 30
 models <- c("GPT-5 (high)", "GPT-5 (medium)", "GPT-5 (low)") 
 dat_all <- map(seq(from = date_start, to = date_final, length.out = 10), 
                ~read_csv(file = paste(
