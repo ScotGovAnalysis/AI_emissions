@@ -51,22 +51,29 @@ scenario_description <-  scenarios |>
 names(scenario_description) <- c("Assumption", scenario_description[1,2:dim(scenario_description)[2]])
  
 scenario_description <- scenario_description[2:nrow(scenario_description), ]
-   
+
+
 sg_ranges <- scenario_results_l %>% 
   filter(measure == "SG") %>% 
   group_by(consumption) %>% 
   summarise(min = min(normalised) *100, 
             max = max(normalised) * 100)
+
+norm_ranges <- scenario_results_l %>% 
+  filter(measure != "SG") %>% 
+  group_by(consumption) %>% 
+  summarise(min = min(normalised), 
+            max = max(normalised))
                     
 ```
 ## Key messages
-This analysis estimates environmental impact of Scottish Government Copilot use. 
+This analysis estimates the environmental impact of Scottish Government Copilot use (excluding impacts of model training) and shows that, even in the highest use scenario, only very small impacts on both energy and water use are projected. 
 
 In the scenarios used:
 
-* Annual emissions range between `r sg_ranges %>%  filter(consumption == "carbon_tons") %>%  pull(min) %>% round(1)` -- `r sg_ranges %>%  filter(consumption == "carbon_tons") %>%  pull(max) %>% round(1)` % of 2024/25 direct emissions from the Scottish Government estate.
-* Annual energy use ranges between `r sg_ranges %>%  filter(consumption == "energy_mwh") %>%  pull(min) %>% round(1)` -- `r sg_ranges %>%  filter(consumption == "energy_mwh") %>%  pull(max) %>% round(1)` % of 2024/25 gas plus electricity use across the Scottish Government estate.
-* Annual water consumption ranges between `r sg_ranges %>%  filter(consumption == "water_kl") %>%  pull(min) %>% round(1)` -- `r sg_ranges %>%  filter(consumption == "water_kl") %>%  pull(max) %>% round(1)` % of 2024/25 water use across the Scottish Government estate.
+* Annual emissions range between `r sg_ranges %>%  filter(consumption == "carbon_tons") %>%  pull(min) %>% round(2)` -- `r sg_ranges %>%  filter(consumption == "carbon_tons") %>%  pull(max) %>% round(1)` % of 2024/25 direct emissions from the Scottish Government estate.
+* Annual energy use ranges between `r sg_ranges %>%  filter(consumption == "energy_mwh") %>%  pull(min) %>% round(1)` -- `r sg_ranges %>%  filter(consumption == "energy_mwh") %>%  pull(max) %>% round(1)` % of 2024/25 gas plus electricity use across the Scottish Government estate, equivalent to the energy consumption of `r norm_ranges %>%  filter(consumption == "energy_mwh") %>%  pull(min) %>% round(0)` -- `r norm_ranges %>%  filter(consumption == "energy_mwh") %>%  pull(max) %>% round(0)` .
+* Annual water consumption ranges between `r sg_ranges %>%  filter(consumption == "water_kl") %>%  pull(min) %>% round(1)` -- `r sg_ranges %>%  filter(consumption == "water_kl") %>%  pull(max) %>% round(1)` % of 2024/25 water use across the Scottish Government estate, equivalent to the annual water use of `r norm_ranges %>%  filter(consumption == "water_kl") %>%  pull(min) %>% round(0)` -- `r norm_ranges %>%  filter(consumption == "water_kl") %>%  pull(max) %>% round(0)`.
 
 
 
@@ -76,10 +83,10 @@ Copilot currently uses the GPT-5 large language model. Estimates for GPT-5 energ
 
 The environmental impact varies for the length of prompt and the complexity of the prompt. 
 
-The results below estimate environmental impacts for the Scottish Government's annual use of Copilot. They estimates are derived for three scenarios with differing assumptions on the number of prompts and the relative proportions of length and complexity of prompts.
+The results below estimate environmental impacts for the Scottish Government's annual use of Copilot. The estimates are derived for three scenarios with differing assumptions on the number of prompts and the relative proportions of length and complexity of prompts.
 
-* Scenario 1: Assumes an annual prompt rate based on actual prompt rate between 1 September 2025 and 27 February 2026. Assume 80%/20%/0% split of short, medium and long prompts and majority of prompts of low complexity.^[The length split is based on the scenario in [Jegham et al 2025](https://arxiv.org/pdf/2505.09598).] This is the most conservative scenario.
-* Scenario 2. Prompt number as in Scenario 1, but assumes 25%/50%/25% split of short, medium and long prompts and allows for some medium and long prompts to be of high complexity.^[The inclusion of long prompts factors in that prompt length increases as conversation length increases, making it likely that a proportion of prompts will be long.]
+* Scenario 1: Assumes an annual prompt rate based on the actual prompt rate between 1 September 2025 and 27 February 2026. It is assumed that there is an  80%/20%/0% split of short, medium and long prompts and that the majority of prompts are of low complexity^[The length split is based on the scenario in [Jegham et al 2025](https://arxiv.org/pdf/2505.09598).]. This is the most conservative scenario.
+* Scenario 2. Prompt number is the same as Scenario 1, but assumes 25%/50%/25% split of short, medium and long prompts and allows for some medium and long prompts to be of high complexity^[The inclusion of long prompts factors in that prompt length increases as conversation length increases, making it likely that a proportion of prompts will be long.].
 * Scenario 3: Length and complexity as in Scenario 2, but assumes a doubling of prompt number as compared to Scenario 1. This scenario aims to capture a more widespread use of AI in Scottish Government in future.
 
 The assumptions are summarised in the table below, where the row "Long High" shows the final percentages of long and high complexity prompts in a given scenario, and similarly for subsequent rows.
@@ -94,7 +101,21 @@ tab <- width(qflextable(scenario_description %>%
                                  "Scenario 2" = scenario_2, 
                                  "Scenario 3" = scenario_3) %>% 
                           mutate(Assumption = str_replace(Assumption, "_", " "), 
-                                 Assumption = str_to_title(Assumption))), j = 1, width = 2)
+                                 Assumption = str_to_title(Assumption), 
+                                 Assumption = if_else(
+                                   Assumption == "Number Prompts",
+                                   "Number of Prompts (million)", 
+                                   str_c(Assumption, "%", sep = " "))
+                                 ) %>% 
+                          #convert to millions of prompts
+                          mutate(across(`Scenario 1`:`Scenario 3`, as.numeric), 
+                                        across(`Scenario 1`:`Scenario 3`, ~case_when( 
+                                    Assumption == 
+                                      "Number of Prompts (million)" ~ 
+                                      round(.x*1e-6, 1),
+                                    TRUE ~ .x))
+                          )
+                        ), j = 1, width = 2)
 
 tab
 
@@ -105,7 +126,7 @@ tab
 
 ### Energy use
 
-Energy use in each scenario in MWh and relative to the energy consumption of a 2-3 bedroom average UK home ^[14.2 MWh https://www.ofgem.gov.uk/average-gas-and-electricity-use-explained], and as a percentage of Scottish Government annual electricity and gas use in 2024/25 ^[https://sustainablescotlandnetwork.org/wp-content/uploads/2026/03/The-Scottish-Government-PBCCD-Report-2025.xlsx].
+Annual energy use in each scenario in MWh and relative to the energy consumption of a 2-3 bedroom average UK home^[14.2 MWh https://www.ofgem.gov.uk/average-gas-and-electricity-use-explained], and as a percentage of Scottish Government annual electricity and gas use in 2024/25^[https://sustainablescotlandnetwork.org/wp-content/uploads/2026/03/The-Scottish-Government-PBCCD-Report-2025.xlsx].
 
 ```{r}
 energy_use <- scenario_results_l %>% 
@@ -133,7 +154,7 @@ energy_use_tab
 
 ### Emissions
 
-Emissions in tons of CO2e and relative to average Scottish annual per capita emissions estimates^[7.2 tCO2e Per capita emissions based on 39.6Mt CO2e 2023 Scotland emissions https://www.gov.scot/publications/scottish-greenhouse-gas-statistics-2023/ and 5,490,100 population estimates https://www.nrscotland.gov.uk/latest-news/scotland-s-population-grows/.  Note that per capita emissions here are computed from estimates including non-domestic emissions.], and as a percentage of Scottish Government annual Scope 1 and Scope 2 emissions in 2024/25$^2$.
+Annual emissions in tons of CO2e and relative to average Scottish annual per capita emissions estimates^[7.2 tCO2e Per capita emissions based on 39.6Mt CO2e 2023 Scotland emissions https://www.gov.scot/publications/scottish-greenhouse-gas-statistics-2023/ and 5,490,100 population estimates https://www.nrscotland.gov.uk/latest-news/scotland-s-population-grows/.  Note that per capita emissions here are computed from estimates including non-domestic emissions such as land-use.], and as a percentage of Scottish Government annual Scope 1 and Scope 2 emissions in 2024/25$^2$. The calculation of Copilot annual emissions uses only Scope 2 emissions estimates factoring in data centres' regional electricity mix.
 
 ```{r}
 emissions <- scenario_results_l %>% 
@@ -164,7 +185,7 @@ emissions_tab
 \newpage
 ### Water use
 
-Water use in kiloliters and relative to typical per capita annual water consumption in Scotland ^[185 l/day and 67.5 kl/year https://www.yourwateryourlife.co.uk/tips-and-help/how-much-water-do-i-use-each-day/], and as a percentage of Scottish Government annual water use in 2024/25 $^2$.
+Water use in kiloliters and relative to typical per capita annual water consumption in Scotland^[185 l/day and 67.5 kl/year https://www.yourwateryourlife.co.uk/tips-and-help/how-much-water-do-i-use-each-day/], and as a percentage of Scottish Government annual water use in 2024/25$^2$.
 
 
 ```{r}
@@ -195,12 +216,14 @@ water_tab
 ## Conclusions and caveats
 
 
-This analysis is intended to give a ballpark estimate of the range of the environmental impacts of Copilot use. The scenarios are intended to give estimates in plausible ranges. Copilot use might increase beyond the ranges used here. AI operation may also become more/less efficient.
+This analysis is intended to give a ballpark estimate of the range of the environmental impacts of Copilot use. It suggests that the day-to-day use of Copilot in the organisation is associated with only a marginal increase in energy use, carbon emissions and water use of the organisation.
 
-The analysis is an estimate of the energy, carbon and water associated with Copilot queries, and does not provide any information relating to the training of the AI.
+Copilot use in the organisation might increase beyond the ranges used here. AI operation may also become more/less efficient.
+
+The analysis is an estimate of the energy, carbon and water associated with Copilot queries, and does not provide any information relating to the training of the AI. It also does not account for Scope 3 emissions associated with embodied emissions of data centre hardware.
 
 The complexity of the prompt dictates the underlying model that is used. In this analysis, prompt complexity is used as a proxy of which model is used in responding to the prompt.
 
-The quantification of water does not factor in the environmental impacts associated with location-dependent sourcing of water, e.g. limitations on water availability around data-centres.
+The quantification of water does not factor in the environmental impacts associated with location-dependent sourcing of water, e.g. water scarcity around data-centres.
 
 
