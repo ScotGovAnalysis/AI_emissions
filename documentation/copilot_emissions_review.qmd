@@ -1,0 +1,189 @@
+---
+title: "Copilot emissions - update"
+format: pptx
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, 
+                      warning = FALSE, 
+                      message = FALSE)
+```
+
+
+```{r}
+library(tidyverse)
+library(flextable)
+library(here)
+
+source(here("analysis", "copilot_estimates.R"))
+normalisation_factors <- read_csv("\\\\s0196a\\ADM-Energy and Climate Change-Climate Change Modelling\\modelling\\ai_emissions\\data\\normalisation_factors.csv")
+# Comment out above and uncomment the line below to use a local copy of the data  
+# normalisation_factors <- read_csv(here("data",          
+#                                       "normalisation_factors.csv"))
+
+
+scenario_results_l <- scenario_results %>% 
+  pivot_longer(cols = -scenario, 
+               names_to = "consumption", 
+               values_to = "consumption_value") %>% 
+  left_join(normalisation_factors, by = "consumption") %>% 
+  mutate(normalised = consumption_value/value)
+
+
+scenario_description <-  scenarios |>
+     rowwise() |>
+     mutate(
+         proportions = list(compute_proportion_table(pick(everything())))
+     ) %>%  select(scenario, number_prompts, proportions) %>% 
+     unnest(proportions) %>% 
+   left_join(tibble(model = c("GPT-5 (high)", "GPT-5 (medium)", "GPT-5 (low)"),
+                    complexity = c("high", "intermediate", "low")), 
+             by = "model"
+             ) %>% 
+   select(-model) %>% 
+   mutate(final_prop = round(final_prop * 100, 1)) %>% 
+   pivot_wider(names_from = c(length, complexity), 
+               values_from = final_prop) %>% 
+   t() %>% 
+   as_tibble(rownames = "prompt")
+ 
+names(scenario_description) <- c("Assumption", scenario_description[1,2:dim(scenario_description)[2]])
+ 
+scenario_description <- scenario_description[2:nrow(scenario_description), ]
+
+
+sg_ranges <- scenario_results_l %>% 
+  filter(measure == "SG") %>% 
+  group_by(consumption) %>% 
+  summarise(min = min(normalised) *100, 
+            max = max(normalised) * 100)
+
+norm_ranges <- scenario_results_l %>% 
+  filter(measure != "SG") %>% 
+  group_by(consumption) %>% 
+  summarise(min = min(normalised), 
+            max = max(normalised))
+                    
+```
+
+## Previous analysis
+
+- Assumed that most Copilot queries would be simple chatbot queries
+- Results:
+    -	Annual emissions range between 0.05 – 0.2 % of 2024/25 direct emissions from the Scottish Government estate.
+    - Annual energy use ranges between 0.1 – 0.3 % of 2024/25 gas plus electricity use across the Scottish Government estate
+    - 	Annual water consumption ranges between 0.1 – 0.4 % of 2024/25 water use across the Scottish Government estate
+
+
+## What has changed
+
+- Scottish Government is introducing agents as part of Copilot suite
+- Agents have much higher energy demands as compared to chat (~100-1000x more)
+- The impact of conversation length on energy consumption may have been underestimated in the original analysis
+
+## Agent energy demands
+
+- Chat query energy ~0.3Wh/query
+- Published estimates for energy use in an agentic workflow are in the order of 50-500Wh ^1[https://simonpcouch.com/blog/2026-01-20-cc-impact/; https://www.theclimatebrink.com/p/the-real-energy-use-of-agentic-ai]. 
+- The earlier analysis used a different methodology for estimating energy use ranging from 4-24Wh
+
+## Accounting for agents and prompt length {.smaller}
+
+Scenario 4 added: 
+ - Prompt number x 5 - multiple agents per prompt
+ - Increased complexity of prompt
+
+```{r }
+
+
+
+tab <- width(qflextable(scenario_description %>% 
+                          rename("Scenario 1" = scenario_1, 
+                                 "Scenario 2" = scenario_2, 
+                                 "Scenario 3" = scenario_3, 
+                                 "Scenario 4" = scenario_4) %>% 
+                          mutate(Assumption = str_replace(Assumption, "_", " "), 
+                                 Assumption = str_to_title(Assumption), 
+                                 Assumption = if_else(
+                                   Assumption == "Number Prompts",
+                                   "Number of Prompts (million)", 
+                                   str_c(Assumption, "%", sep = " "))
+                                 ) %>% 
+                          #convert to millions of prompts
+                          mutate(across(`Scenario 1`:`Scenario 4`, as.numeric), 
+                                        across(`Scenario 1`:`Scenario 4`, ~case_when( 
+                                    Assumption == 
+                                      "Number of Prompts (million)" ~ 
+                                      round(.x*1e-6, 1),
+                                    TRUE ~ .x))
+                          )
+                        ), j = 1, width = 2)
+
+tab
+
+```
+
+## Energy use
+
+```{r}
+energy_use <- scenario_results_l %>% 
+  filter(consumption == "energy_mwh") %>%
+  select(scenario, consumption_value, measure, normalised) %>% 
+  pivot_wider(names_from = measure, 
+              values_from = normalised) %>% 
+  mutate(SG = SG*100, 
+         scenario = str_replace(scenario, "_", " "), 
+         scenario = str_replace(scenario, "^s", "S")) %>% 
+  rename(MWh = consumption_value, 
+         Homes = household, 
+         Scenario = scenario, 
+         `% SG` = SG) %>% 
+  select(Scenario, MWh, Homes, `% SG`) %>% 
+  mutate_at(c("MWh", "Homes"), round, 0) %>% 
+  mutate_at("% SG", round, 1)
+
+energy_use_tab <- width(qflextable(energy_use), j = 1, width = 2)
+
+energy_use_tab
+
+```
+
+
+## Emissions
+
+```{r}
+emissions <- scenario_results_l %>% 
+  filter(consumption == "carbon_tons") %>% 
+  
+  select(scenario, consumption_value, measure, normalised) %>% 
+  pivot_wider(names_from = measure, 
+              values_from = normalised) %>% 
+   mutate(SG = SG*100, 
+         scenario = str_replace(scenario, "_", " "), 
+         scenario = str_replace(scenario, "^s", "S")) %>% 
+  rename(`tonnes CO2e` = consumption_value, 
+         `Per capita emissions` = person, 
+         Scenario = scenario,
+         `% SG` = SG) %>% 
+  select(Scenario, `tonnes CO2e`, `Per capita emissions`, `% SG`) %>% 
+  mutate_at(c("tonnes CO2e", "Per capita emissions"), round, 0) %>% 
+  mutate_at("% SG", round, 1)
+  
+
+
+emissions_tab <- width(qflextable(emissions), j = 1, width = 2)
+
+emissions_tab
+
+```
+
+## Other issues
+
+- DG corporate - ensuring that analysis and recommendations are consistent
+- Review of emissions as data becomes available
+- Scope 3 reporting - SG and others.
+
+
+
+
+
