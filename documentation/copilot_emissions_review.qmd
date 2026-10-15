@@ -1,6 +1,8 @@
 ---
 title: "Copilot emissions - update"
-format: pptx
+format:
+   revealjs:
+      slide-number: true
 ---
 
 ```{r setup, include=FALSE}
@@ -66,7 +68,7 @@ norm_ranges <- scenario_results_l %>%
                     
 ```
 
-## Previous analysis
+## Previous analysis {.smaller}
 
 - Assumed that most Copilot queries would be simple chatbot queries
 - Results:
@@ -75,21 +77,24 @@ norm_ranges <- scenario_results_l %>%
     - 	Annual water consumption ranges between 0.1 – 0.4 % of 2024/25 water use across the Scottish Government estate
 
 
-## What has changed
+## What has changed  {.smaller}
+
 
 - Scottish Government is introducing agents as part of Copilot suite
 - Agents have much higher energy demands as compared to chat (~100-1000x more)
 - The impact of conversation length on energy consumption may have been underestimated in the original analysis
 
-## Agent energy demands
+## Agent energy demands  {.smaller}
+
 
 - Chat query energy ~0.3Wh/query
-- Published estimates for energy use in an agentic workflow are in the order of 50-500Wh ^1[https://simonpcouch.com/blog/2026-01-20-cc-impact/; https://www.theclimatebrink.com/p/the-real-energy-use-of-agentic-ai]. 
-- The earlier analysis used a different methodology for estimating energy use ranging from 4-24Wh
+- Published estimates for energy use in an agentic workflow are in the order of 50-500Wh/workflow^[https://simonpcouch.com/blog/2026-01-20-cc-impact/; https://www.theclimatebrink.com/p/the-real-energy-use-of-agentic-ai]. 
+- The earlier analysis used a different methodology for estimating energy use ranging from 4-24Wh/query
 
 ## Accounting for agents and prompt length {.smaller}
 
 Scenario 4 added: 
+
  - Prompt number x 5 - multiple agents per prompt
  - Increased complexity of prompt
 
@@ -180,7 +185,7 @@ emissions_tab
 ## Other issues
 
 - DG corporate - ensuring that analysis and recommendations are consistent
-- Review of emissions as data becomes available
+- Sensitivity of results -> Review of emissions as data becomes available
 - Scope 3 reporting - SG and others.
 
 
