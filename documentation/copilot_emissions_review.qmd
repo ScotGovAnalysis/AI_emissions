@@ -95,7 +95,7 @@ norm_ranges <- scenario_results_l %>%
 
 Scenario 4 added: 
 
- - Prompt number x 5 - multiple agents per prompt
+ - Prompt number x 5 of scenario 3 - multiple agents per prompt
  - Increased complexity of prompt
 
 ```{r }
@@ -182,11 +182,47 @@ emissions_tab
 
 ```
 
-## Other issues
 
-- DG corporate - ensuring that analysis and recommendations are consistent
+## Water usage
+
+```{r}
+water <- scenario_results_l %>% 
+  filter(consumption == "water_kl") %>% 
+  select(scenario, consumption_value, measure, normalised) %>% 
+  pivot_wider(names_from = measure, 
+              values_from = normalised) %>% 
+   mutate(SG = SG*100, 
+         scenario = str_replace(scenario, "_", " "), 
+         scenario = str_replace(scenario, "^s", "S")) %>% 
+  rename(kiloliters = consumption_value, 
+         `Per capita water consumption` = person, 
+         Scenario = scenario,
+         `% SG` = SG) %>% 
+  select(Scenario, kiloliters, `Per capita water consumption`, `% SG`) %>% 
+  mutate_at(c("kiloliters", "Per capita water consumption"), round, 0) %>% 
+  mutate_at("% SG", round, 1)
+
+water_tab <- width(qflextable(water), j = 1, width = 2)
+
+water_tab
+
+```
+
+## Discussion {.smaller}
+
+- Scenario 4 is a high estimate of agentic use
+- Analysis highly sensitive to assumptions
+- Efficiency improvements as well as increased use must be considered
+- SG needs better data to make an informed decision on AI policy
+  
+## Implications {.smaller}
+
+- Can SG (and other corporate users) push microsoft for better data. Anthropic provides tokens use
 - Sensitivity of results -> Review of emissions as data becomes available
 - Scope 3 reporting - SG and others.
+- Recommendations on AI usage to reduce emissions - shorter conversations?
+
+- DG corporate may have conducted their own environmental impact analysis - ensuring that analysis and recommendations are consistent
 
 
 
