@@ -88,7 +88,7 @@ The results below estimate environmental impacts for the Scottish Government's a
 * Scenario 1: Assumes an annual prompt rate based on the actual prompt rate between 1 September 2025 and 27 February 2026. It is assumed that there is an  80%/20%/0% split of short, medium and long prompts and that the majority of prompts are of low complexity^[The length split is based on the scenario in [Jegham et al 2025](https://arxiv.org/pdf/2505.09598).]. This is the most conservative scenario.
 * Scenario 2. Prompt number is the same as Scenario 1, but assumes 25%/50%/25% split of short, medium and long prompts and allows for some medium and long prompts to be of high complexity^[The inclusion of long prompts factors in that prompt length increases as conversation length increases, making it likely that a proportion of prompts will be long.].
 * Scenario 3: Length and complexity as in Scenario 2, but assumes a doubling of prompt number as compared to Scenario 1. This scenario aims to capture a more widespread use of AI in Scottish Government in future.
-* Scenario 4: Prompt number increases by a factor of 5 to account for multiple agents responding to a single query. It also assumes a heavy shift to complex prompts to account for increased use of agents.
+* Scenario 4: Prompt number increases by a factor of 5 as compared to Scenario 3 to account for multiple agents responding to a single query. It also assumes a heavy shift to complex prompts to account for increased use of agents as well as longer prompts to account for an increased length of conversations.
 
 The assumptions are summarised in the table below, where the row "Long High" shows the final percentages of long and high complexity prompts in a given scenario, and similarly for subsequent rows.
 
